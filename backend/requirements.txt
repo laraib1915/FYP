@@ -11,3 +11,7 @@ joblib
 numpy
 psycopg2-binary
 lightgbm
+python-jose[cryptography]
+passlib[bcrypt]
+email-validator
+bcrypt

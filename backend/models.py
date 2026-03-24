@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, Text, JSON
+from sqlalchemy import Column, Integer, String, Float, Boolean, Text, JSON, DateTime, ForeignKey
 from database import Base
+from datetime import datetime
 
 class Patient(Base):
     __tablename__ = "patients"
@@ -56,3 +57,50 @@ class Patient(Base):
     currentMortalityRisk = Column(Float, nullable=True)
     currentRiskLevel = Column(String, nullable=True)
     currentSofaScore = Column(Float, nullable=True)
+
+
+# ========== AUTHENTICATION MODELS ==========
+
+class Hospital(Base):
+    __tablename__ = "hospitals"
+    
+    id = Column(String, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    location = Column(String)
+    admin_id = Column(String, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(String, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    password_hash = Column(String)
+    name = Column(String)
+    role = Column(String)  # Admin, Doctor, Staff
+    department = Column(String, nullable=True)  # Ward, ICU (if applicable)
+    hospital_id = Column(String, ForeignKey("hospitals.id"), nullable=True)
+    is_active = Column(Boolean, default=True)
+    is_first_login = Column(Boolean, default=True)  # For temp password change
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Doctor(Base):
+    __tablename__ = "doctors"
+    
+    id = Column(String, primary_key=True, index=True)
+    user_id = Column(String, ForeignKey("users.id"), unique=True)
+    license_number = Column(String, unique=True, index=True)
+    specialization = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Staff(Base):
+    __tablename__ = "staff"
+    
+    id = Column(String, primary_key=True, index=True)
+    user_id = Column(String, ForeignKey("users.id"), unique=True)
+    designation = Column(String)  # Nurse, Technician, etc
+    shift = Column(String, nullable=True)  # Morning, Evening, Night
+    created_at = Column(DateTime, default=datetime.utcnow)

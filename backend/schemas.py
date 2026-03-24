@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import List, Optional
+from datetime import datetime
 
 class PatientBase(BaseModel):
     name: str
@@ -46,6 +47,95 @@ class PatientResponse(PatientBase, PredictionResult):
     currentMortalityRisk: Optional[float] = None
     currentRiskLevel: Optional[str] = None
     currentSofaScore: Optional[float] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ========== AUTHENTICATION SCHEMAS ==========
+
+class AdminSignupRequest(BaseModel):
+    email: EmailStr
+    password: str
+    name: str
+    hospital_name: str
+
+
+class DoctorSignupRequest(BaseModel):
+    email: EmailStr
+    password: str
+    name: str
+    license_number: str
+    specialization: str
+    department: str  # Ward or ICU
+
+
+class StaffSignupRequest(BaseModel):
+    email: EmailStr
+    password: str
+    name: str
+    designation: str
+    department: str  # Ward or ICU
+    shift: Optional[str] = None
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str
+    user: dict
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    name: str
+    role: str
+    department: Optional[str]
+    hospital_id: Optional[str]
+    is_active: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class HospitalResponse(BaseModel):
+    id: str
+    name: str
+    location: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class DoctorResponse(BaseModel):
+    id: str
+    user_id: str
+    license_number: str
+    specialization: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class StaffResponse(BaseModel):
+    id: str
+    user_id: str
+    designation: str
+    shift: Optional[str]
+    created_at: datetime
 
     class Config:
         from_attributes = True
