@@ -31,7 +31,6 @@ const Login: React.FC = () => {
 
       login(data.access_token, data.user);
 
-      // Route based on role and first login status
       if (data.user.is_first_login) {
         navigate('/change-password');
       } else {
@@ -46,12 +45,12 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-red-600 rounded-lg flex items-center justify-center">
+            <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-4xl">🔥</span>
             </div>
           </div>
@@ -77,7 +76,7 @@ const Login: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
                 placeholder="you@example.com"
               />
             </div>
@@ -91,7 +90,7 @@ const Login: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
                 placeholder="••••••••"
               />
             </div>
@@ -99,7 +98,7 @@ const Login: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 font-semibold transition disabled:opacity-50"
+              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold transition disabled:opacity-50"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
@@ -109,7 +108,7 @@ const Login: React.FC = () => {
             Don't have an account?{' '}
             <button
               onClick={() => navigate('/signup')}
-              className="text-red-600 hover:text-red-700 font-semibold"
+              className="text-blue-600 hover:text-blue-700 font-semibold"
             >
               Sign up
             </button>

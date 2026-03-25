@@ -82,12 +82,12 @@ const Signup: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-red-600 rounded-lg flex items-center justify-center">
+            <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-4xl">🔥</span>
             </div>
           </div>
@@ -118,7 +118,7 @@ const Signup: React.FC = () => {
                 value={formData.hospitalName}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
                 placeholder="Central Burn Center"
               />
             </div>
@@ -133,7 +133,7 @@ const Signup: React.FC = () => {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
                 placeholder="Your name"
               />
             </div>
@@ -148,7 +148,7 @@ const Signup: React.FC = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
                 placeholder="admin@hospital.com"
               />
             </div>
@@ -163,7 +163,7 @@ const Signup: React.FC = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
                 placeholder="••••••••"
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -181,7 +181,7 @@ const Signup: React.FC = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
                 placeholder="••••••••"
               />
             </div>
@@ -189,7 +189,7 @@ const Signup: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 font-semibold transition disabled:opacity-50"
+              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold transition disabled:opacity-50"
             >
               {loading ? 'Creating Account...' : 'Create Hospital Account'}
             </button>
@@ -199,15 +199,15 @@ const Signup: React.FC = () => {
             Already have an account?{' '}
             <button
               onClick={() => navigate('/login')}
-              className="text-red-600 hover:text-red-700 font-semibold"
+              className="text-blue-600 hover:text-blue-700 font-semibold"
             >
               Sign in
             </button>
           </p>
         </div>
 
-        <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-sm text-amber-800">
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
             <span className="font-semibold">Note:</span> Doctors and staff are invited by hospital administrators after signup.
           </p>
         </div>
