@@ -52,6 +52,12 @@ class PatientResponse(PatientBase, PredictionResult):
         from_attributes = True
 
 
+class TBSAResultRequest(BaseModel):
+    total_tbsa: float
+    breakdown: Optional[dict] = None
+    regions: Optional[list] = None
+
+
 # ========== AUTHENTICATION SCHEMAS ==========
 
 class AdminSignupRequest(BaseModel):

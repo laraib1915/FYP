@@ -1,0 +1,38 @@
+:root{
+  --bg:#f6f9fc;
+  --card:#ffffff;
+  --accent:#0b76ef;
+  --muted:#666;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Inter,Segoe UI,Roboto,Arial;
+  background:linear-gradient(180deg,#eef6ff 0%,var(--bg) 100%);
+  color:#111;
+}
+.app{max-width:1100px;margin:18px auto;padding:14px;}
+header h1{margin:0 0 12px;font-size:20px}
+main{display:flex;gap:18px}
+.controls{
+  width:360px;
+  background:var(--card);
+  padding:14px;border-radius:12px;
+  box-shadow:0 6px 18px rgba(10,30,60,0.06);
+  display:flex;flex-direction:column;gap:12px;
+}
+.controls .tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.controls .tools label{font-size:13px;color:var(--muted)}
+.controls button{padding:8px 10px;border-radius:8px;border:1px solid #e0e6ef;background:#fff;cursor:pointer}
+.canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center}
+.canvas-container{background:var(--card);padding:12px;border-radius:12px;box-shadow:0 6px 20px rgba(10,30,60,0.06)}
+canvas{display:block;max-width:100%;height:auto;background:#fff;border-radius:6px;touch-action:none;border:1px solid #e6eef9}
+.results{font-size:14px;color:#0b2e4a}
+.results ul{margin:6px 0 0 16px}
+.degree-legend{display:flex;gap:8px;align-items:center}
+.degree-swatch{width:16px;height:16px;border-radius:3px;display:inline-block}
+.degree-1{background:#ffd7d7}
+.degree-2{background:#ff8a6b}
+.degree-3{background:#a00000}
+.overlay-path { stroke: rgba(0,120,200,0.9); stroke-width:2; fill: rgba(0,120,200,0.06); }

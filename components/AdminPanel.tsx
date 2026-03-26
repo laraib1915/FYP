@@ -43,7 +43,7 @@ const AdminPanel: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:8000/users', {
+      const response = await fetch('http://localhost:8001/users', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
@@ -67,7 +67,7 @@ const AdminPanel: React.FC = () => {
     setSubmitting(true);
 
     try {
-      let endpoint = 'http://localhost:8000/auth/create-doctor';
+      let endpoint = 'http://localhost:8001/auth/create-doctor';
       let payload: any = {
         email: inviteData.email,
         name: inviteData.name,
@@ -84,7 +84,7 @@ const AdminPanel: React.FC = () => {
         payload.specialization = inviteData.specialization;
         payload.password = Math.random().toString(36).slice(-12); // Temp password
       } else {
-        endpoint = 'http://localhost:8000/auth/create-staff';
+        endpoint = 'http://localhost:8001/auth/create-staff';
         if (!inviteData.designation) {
           setError('Designation required for staff');
           setSubmitting(false);
@@ -132,7 +132,7 @@ const AdminPanel: React.FC = () => {
     if (!confirm('Are you sure you want to deactivate this user?')) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/users/${userId}`, {
+      const response = await fetch(`http://localhost:8001/users/${userId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });

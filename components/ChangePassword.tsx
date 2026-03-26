@@ -37,7 +37,7 @@ const ChangePassword: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/auth/change-password', {
+      const response = await fetch('http://localhost:8001/auth/change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

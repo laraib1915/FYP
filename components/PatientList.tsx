@@ -133,7 +133,7 @@ export const PatientList: React.FC = () => {
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
           <Link
-            to="/"
+            to="/patients/new"
             className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto"
           >
             Add Patient
@@ -267,14 +267,8 @@ export const PatientList: React.FC = () => {
                         <div>{patient.gender}</div>
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        <div className="text-gray-900 font-medium">{patient.tbsa}% TBSA</div>
-                        <div className="flex items-center gap-1">
-                          {patient.inhalationInjury && (
-                            <span className="inline-flex items-center rounded bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
-                              + Inhalation
-                            </span>
-                          )}
-                        </div>
+                        <div className="text-gray-900 font-medium">TBSA: {Number(patient.tbsa || 0).toFixed(2)}%</div>
+                        <div className="text-xs text-gray-500 mt-1">Depth: {patient.burnDepth}</div>
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm">
                         <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getRiskColor(patient.riskLevel)}`}>
