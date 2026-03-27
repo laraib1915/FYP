@@ -65,6 +65,14 @@ const App: React.FC = () => {
           />
 
           {/* Original Patient Routes (for testing) */}
+          <Route
+            path="/patients/new"
+            element={
+              <ProtectedRoute allowedRoles={['Doctor', 'Admin']}>
+                <PatientForm />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/patients" element={<PatientList />} />
           <Route path="/patient/:id" element={<PatientDetail />} />
           <Route path="/triage" element={<TriageDashboard />} />

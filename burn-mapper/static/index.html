@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Burn Mapper — Lund & Browder</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Burn Mapping — Lund & Browder (Adult)</h1>
+    </header>
+
+    <main>
+      <section class="controls">
+        <div class="view-toggle">
+          <button id="toggleViewBtn">Show Back</button>
+        </div>
+
+        <div class="tools">
+          <label>Degree:
+            <select id="degreeSelect">
+              <option value="1">1st</option>
+              <option value="2" selected>2nd</option>
+              <option value="3">3rd</option>
+            </select>
+          </label>
+
+          <label>Brush size:
+            <input id="brushSize" type="range" min="4" max="60" value="18" />
+          </label>
+
+          <button id="undoBtn">Undo</button>
+          <button id="clearBtn">Clear</button>
+          <button id="saveBtn">Save Assessment</button>
+          <button id="serverCalcBtn">Server Calculate TBSA</button>
+        </div>
+
+        <div class="results">
+          <div>Total TBSA: <span id="totalTBSA">0%</span></div>
+          <div id="syncStatus" style="margin-top:6px;color:#0b2e4a;font-weight:600;"></div>
+          <div>Breakdown:
+            <ul id="degreeBreakdown"></ul>
+          </div>
+          <div>Regions affected:
+            <ul id="regionsAffected"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="canvas-wrap">
+        <div class="canvas-container">
+          <canvas id="mainCanvas" width="400" height="900"></canvas>
+        </div>
+      </section>
+
+    </main>
+
+    <footer>
+      <small>Paste your Base64 images into script.js FRONT_IMAGE_BASE64 / BACK_IMAGE_BASE64.</small>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

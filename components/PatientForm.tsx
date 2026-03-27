@@ -1,60 +1,94 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Gender, BurnDepth, PatientInput, PatientRecord, VitalEntry } from '../types';
 import { apiService } from '../services/apiService';
-import { BodyMap, calculateTBSA } from './BodyMap';
 import { Loader2, AlertTriangle, Wind, Activity, Heart, Brain, TestTube, Thermometer, Droplets, HelpCircle } from 'lucide-react';
+
+const PATIENT_FORM_DRAFT_KEY = 'patient_form_draft_v1';
+
+const DEFAULT_FORM_DATA: PatientInput = {
+  name: '',
+  age: 45,
+  gender: Gender.Male,
+  tbsa: 0,
+  burnedRegions: [],
+  burnDepth: BurnDepth.PartialThickness,
+  inhalationInjury: false,
+  comorbidities: '',
+
+  // Hemodynamics
+  heartRate: 80,
+  systolicBP: 120,
+  diastolicBP: 80,
+  temperature: 37.0,
+
+  // Respiratory
+  spo2: 98,
+  pao2: 95,
+  fio2: 21,
+
+  // Renal
+  urineOutput: 50,
+
+  // Labs
+  platelets: 250,
+  bilirubin: 0.8,
+  creatinine: 0.9,
+
+  // GCS
+  gcsEye: 4,
+  gcsVerbal: 5,
+  gcsMotor: 6
+};
 
 export const PatientForm: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<PatientInput>({
-    name: '',
-    age: 45,
-    gender: Gender.Male,
-    tbsa: 0,
-    burnedRegions: [],
-    burnDepth: BurnDepth.PartialThickness,
-    inhalationInjury: false,
-    comorbidities: '',
-
-    // Hemodynamics
-    heartRate: 80,
-    systolicBP: 120,
-    diastolicBP: 80,
-    temperature: 37.0,
-
-    // Respiratory
-    spo2: 98,
-    pao2: 95,
-    fio2: 21,
-
-    // Renal
-    urineOutput: 50,
-
-    // Labs
-    platelets: 250,
-    bilirubin: 0.8,
-    creatinine: 0.9,
-
-    // GCS
-    gcsEye: 4,
-    gcsVerbal: 5,
-    gcsMotor: 6
+  const [formData, setFormData] = useState<PatientInput>(() => {
+    try {
+      const raw = sessionStorage.getItem(PATIENT_FORM_DRAFT_KEY);
+      if (!raw) return DEFAULT_FORM_DATA;
+      const parsed = JSON.parse(raw) as Partial<PatientInput>;
+      return { ...DEFAULT_FORM_DATA, ...parsed };
+    } catch {
+      return DEFAULT_FORM_DATA;
+    }
   });
 
-  // Automatically update TBSA when regions change
+  const formatTbsa = (value: number) => Number(value || 0).toFixed(2);
+  const roundTbsa = (value: number) => Math.round((Number(value || 0) + Number.EPSILON) * 100) / 100;
+
+  // Populate TBSA when redirected back from burn-mapper (e.g. /#/patients/new?tbsa=23.5)
   useEffect(() => {
-    const calculated = calculateTBSA(formData.burnedRegions);
-    setFormData(prev => ({ ...prev, tbsa: calculated }));
-  }, [formData.burnedRegions]);
+    const params = new URLSearchParams(location.search);
+    const tbsaParam = params.get('tbsa');
+    if (!tbsaParam) return;
+
+    const parsed = parseFloat(tbsaParam);
+    if (!Number.isNaN(parsed)) {
+      setFormData(prev => ({ ...prev, tbsa: roundTbsa(Math.max(0, Math.min(100, parsed)))}));
+    }
+  }, [location.search]);
+
+  // Persist draft so form remains filled after navigating to burn-mapper and returning
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(PATIENT_FORM_DRAFT_KEY, JSON.stringify(formData));
+    } catch {
+      // ignore storage failures
+    }
+  }, [formData]);
 
   const handleChange = (field: keyof PatientInput, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleRegionChange = (regions: string[]) => {
-    setFormData(prev => ({ ...prev, burnedRegions: regions }));
+  const openBurnMapper = () => {
+    const currentOrigin = window.location.origin;
+    const returnToForm = `${currentOrigin}/#/patients/new`;
+    const mapperUrl = `http://localhost:8001/tbsa?returnUrl=${encodeURIComponent(returnToForm)}`;
+    window.location.href = mapperUrl;
   };
 
   const calculateMAP = () => {
@@ -71,7 +105,9 @@ export const PatientForm: React.FC = () => {
 
     setLoading(true);
     try {
-      const newRecord = await apiService.createPatient(formData);
+      const payload = { ...formData, tbsa: roundTbsa(formData.tbsa) };
+      const newRecord = await apiService.createPatient(payload);
+      sessionStorage.removeItem(PATIENT_FORM_DRAFT_KEY);
       navigate(`/patient/${newRecord.id}`);
     } catch (error) {
       console.error(error);
@@ -85,7 +121,7 @@ export const PatientForm: React.FC = () => {
     <div className="max-w-4xl mx-auto py-2">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">New Patient Assessment</h1>
-        <p className="text-gray-500 mt-2">Enter complete clinical parameters. Use the body map to estimate TBSA via Rule of Nines.</p>
+        <p className="text-gray-500 mt-2">Enter complete clinical parameters. Use Burn Mapper to calculate TBSA and return it here.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl p-6 space-y-8">
@@ -163,30 +199,26 @@ export const PatientForm: React.FC = () => {
             </label>
           </div>
 
-          {/* Body Map Section */}
+          {/* Burn Mapper TBSA Section */}
           <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
             <div className="flex flex-col md:flex-row justify-between items-center mb-4">
               <div className="flex items-center gap-2">
-                <label className="text-sm font-bold text-gray-700">Burn Surface Area Calculator (Rule of Nines)</label>
+                <label className="text-sm font-bold text-gray-700">Burn Surface Area Calculator (Burn Mapper)</label>
                 <div className="group relative">
                   <HelpCircle className="w-4 h-4 text-gray-400 cursor-help" />
                   <div className="absolute left-0 bottom-full mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-10 shadow-xl">
-                    <p className="font-bold text-gray-200 mb-1">Wallace Rule of Nines Estimate:</p>
-                    <ul className="list-disc pl-3 space-y-1 text-gray-300 mb-2">
-                      <li>Head & Neck: 9%</li>
-                      <li>Each Arm: 9%</li>
-                      <li>Anterior Torso: 18%</li>
-                      <li>Posterior Torso: 18%</li>
-                      <li>Each Leg: 18%</li>
-                      <li>Perineum: 1%</li>
-                    </ul>
+                    <p className="font-bold text-gray-200 mb-1">How this works:</p>
+                    <p className="text-gray-300">
+                      Opens the integrated burn-mapper tool for front/back drawing-based TBSA calculation.
+                      Save assessment there to return TBSA to this form.
+                    </p>
                     <a
-                      href="https://en.wikipedia.org/wiki/Wallace_rule_of_nines"
+                      href="http://localhost:8001/tbsa"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-300 hover:text-blue-200 underline block mt-1"
                     >
-                      Read detailed guide ↗
+                      Open burn-mapper directly ↗
                     </a>
                     <div className="absolute left-1.5 top-full border-4 border-transparent border-t-gray-800"></div>
                   </div>
@@ -195,16 +227,21 @@ export const PatientForm: React.FC = () => {
 
               <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-full border shadow-sm">
                 <span className="text-xs text-gray-500">Calculated TBSA:</span>
-                <span className="text-xl font-bold text-red-600">{formData.tbsa}%</span>
+                <span className="text-xl font-bold text-red-600">{formatTbsa(formData.tbsa)}%</span>
               </div>
             </div>
             <p className="text-xs text-gray-500 text-center mb-4">
-              Click on body regions to mark them as burned. The calculator automatically sums the affected surface area.
+              Click below to open Burn Mapper. After saving assessment, you will be redirected back and TBSA will auto-fill.
             </p>
-            <BodyMap
-              selectedRegions={formData.burnedRegions}
-              onChange={handleRegionChange}
-            />
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={openBurnMapper}
+                className="inline-flex items-center px-4 py-2 rounded-md bg-orange-600 text-white text-sm font-medium hover:bg-orange-700"
+              >
+                Open Burn Mapper TBSA Calculator
+              </button>
+            </div>
           </div>
         </div>
 

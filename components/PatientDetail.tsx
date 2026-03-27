@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import { apiService } from '../services/apiService';
 import { PatientRecord, VitalEntry } from '../types';
 import { RiskChart } from './RiskChart';
-import { BodyMap } from './BodyMap';
 import { VitalCharts } from './VitalCharts';
 import { ArrowLeft, User, Activity, Flame, CheckCircle, Clock, Plus, AlertOctagon, ShieldCheck, Save, Loader2 } from 'lucide-react';
 
@@ -121,6 +120,18 @@ export const PatientDetail: React.FC = () => {
     }
   };
 
+  const openTbsaCalculator = () => {
+    if (!patient?.id) return;
+    const returnUrl = `${window.location.origin}/#/patient/${patient.id}`;
+    const params = new URLSearchParams({
+      patientId: patient.id,
+      name: patient.name || 'Unknown',
+      tbsa: Number(patient.tbsa ?? 0).toFixed(2),
+      returnUrl
+    });
+    window.location.href = `http://localhost:8001/tbsa?${params.toString()}`;
+  };
+
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       {/* Top Navigation & Status Control */}
@@ -232,7 +243,7 @@ export const PatientDetail: React.FC = () => {
                 <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
                   <div>
                     <span className="block text-xs text-gray-500 uppercase">TBSA</span>
-                    <span className="text-xl font-bold text-gray-900">{patient.tbsa}%</span>
+                    <span className="text-xl font-bold text-gray-900">{Number(patient.tbsa || 0).toFixed(2)}%</span>
                   </div>
                   <div>
                     <span className="block text-xs text-gray-500 uppercase text-right">Inhalation</span>
@@ -242,15 +253,19 @@ export const PatientDetail: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="border border-gray-100 rounded-lg p-2 flex justify-center bg-gray-50/50">
-                  <div className="scale-75 origin-top -mb-20">
-                    <BodyMap selectedRegions={patient.burnedRegions || []} readOnly={true} />
-                  </div>
-                </div>
-
                 <div>
                   <dt className="text-xs text-gray-500 uppercase mt-4">Depth</dt>
                   <dd className="text-sm font-medium text-gray-900">{patient.burnDepth}</dd>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={openTbsaCalculator}
+                    className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500"
+                  >
+                    Calculate TBSA
+                  </button>
                 </div>
               </dl>
             </div>

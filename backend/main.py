@@ -1,23 +1,53 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+from pydantic import BaseModel
+import os
+import json
+import uuid
+import sys
+from pathlib import Path
 import models, schemas, crud, database, auth_service
 from services.prediction_service import predict_mortality 
+
+CURRENT_DIR = Path(__file__).resolve().parent
+TBSA_BACKEND_DIR = CURRENT_DIR.parent / "burn-mapper" / "backend"
+TBSA_STATIC_DIR = CURRENT_DIR.parent / "burn-mapper" / "static"
+TBSA_DATA_DIR = CURRENT_DIR.parent / "burn-mapper" / "data"
+TBSA_ASSESSMENTS_FILE = TBSA_DATA_DIR / "assessments.json"
+
+os.makedirs(TBSA_DATA_DIR, exist_ok=True)
+
+if str(TBSA_BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(TBSA_BACKEND_DIR))
+
+from tbsa import calculate_tbsa_from_mask  # type: ignore
 
 # Create DB tables
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
 
+if TBSA_STATIC_DIR.exists():
+    app.mount("/tbsa", StaticFiles(directory=str(TBSA_STATIC_DIR), html=True), name="tbsa")
+
 # CORS settings
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
         "http://localhost:3000",
+        "http://127.0.0.1:3000",
         "http://localhost:3001",
+        "http://127.0.0.1:3001",
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
         "http://192.168.100.13:5173",
         "http://192.168.100.13:3000",
         "http://192.168.100.13:3001"
@@ -38,6 +68,29 @@ def get_db():
 
 # JWT Security
 security = HTTPBearer()
+
+
+class TBSAMaskPayload(BaseModel):
+    mask_base64: str
+
+
+class TBSASavePayload(BaseModel):
+    timestamp: Optional[str] = None
+    mask_base64: Optional[str] = None
+    strokes: Optional[List[Dict[str, Any]]] = None
+    view: Optional[str] = None
+
+
+def load_tbsa_assessments():
+    if not TBSA_ASSESSMENTS_FILE.exists():
+        return {}
+    with open(TBSA_ASSESSMENTS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_tbsa_assessments(data):
+    with open(TBSA_ASSESSMENTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
 
 
 def get_current_user(credentials: HTTPBearer = Depends(security), 
@@ -256,6 +309,38 @@ def deactivate_user(user_id: str,
     return {"message": "User deactivated successfully"}
 
 
+@app.post("/tbsa-api/calculate-tbsa")
+def tbsa_calculate(payload: TBSAMaskPayload):
+    """Calculate TBSA from burn-mapper mask image."""
+    try:
+        return calculate_tbsa_from_mask(payload.mask_base64)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/tbsa-api/save-assessment")
+def tbsa_save_assessment(payload: TBSASavePayload):
+    """Save burn-mapper drawing session payload to JSON file."""
+    db = load_tbsa_assessments()
+    assessment_id = str(uuid.uuid4())
+    entry = payload.dict()
+    entry["id"] = assessment_id
+    db[assessment_id] = entry
+    save_tbsa_assessments(db)
+    return {"status": "ok", "id": assessment_id}
+
+
+@app.get("/tbsa-api/load-assessment")
+def tbsa_load_assessment(id: Optional[str] = None):
+    """Load all burn-mapper saved assessments, or one by id."""
+    db = load_tbsa_assessments()
+    if id:
+        if id in db:
+            return db[id]
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    return list(db.values())
+
+
 # --------------------------------------------------------
 # CREATE PATIENT + RUN LOCAL LIGHTGBM MORTALITY PREDICTION
 # --------------------------------------------------------
@@ -312,6 +397,15 @@ def read_patient(patient_id: str, db: Session = Depends(get_db)):
     return patient
 
 
+@app.post("/patients/{patient_id}/tbsa-result", response_model=schemas.PatientResponse)
+def update_patient_tbsa_result(patient_id: str, payload: schemas.TBSAResultRequest, db: Session = Depends(get_db)):
+    """Receive TBSA result from integrated burn-mapper and update patient record."""
+    updated = crud.update_patient_tbsa(db, patient_id, payload.total_tbsa)
+    if updated is None:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    return updated
+
+
 # --------------------------------------------------------
 # UPDATE PATIENT
 # --------------------------------------------------------
@@ -356,4 +450,4 @@ def delete_patient(patient_id: str, db: Session = Depends(get_db)):
 # --------------------------------------------------------
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

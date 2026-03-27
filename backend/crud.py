@@ -29,6 +29,8 @@ def generate_patient_id(db: Session) -> str:
 
 def create_patient(db: Session, patient: schemas.PatientBase, prediction: schemas.PredictionResult):
     new_id = generate_patient_id(db)
+    patient_data = patient.dict()
+    patient_data["tbsa"] = round(float(patient_data.get("tbsa", 0.0)), 2)
     
     # Create initial vital entry
     initial_vitals = {
@@ -48,7 +50,7 @@ def create_patient(db: Session, patient: schemas.PatientBase, prediction: schema
         id=new_id,
         timestamp=datetime.now().isoformat(),
         status="Active",
-        **patient.dict(),
+        **patient_data,
         **prediction.dict(),
         hourlyVitals=[initial_vitals] # Initialize with first entry
     )
@@ -59,6 +61,8 @@ def create_patient(db: Session, patient: schemas.PatientBase, prediction: schema
 
 def update_patient(db: Session, patient_id: str, updates: dict):
     # simplistic update
+    if "tbsa" in updates and updates["tbsa"] is not None:
+        updates["tbsa"] = round(float(updates["tbsa"]), 2)
     db.query(models.Patient).filter(models.Patient.id == patient_id).update(updates)
     db.commit()
     return get_patient(db, patient_id)
@@ -76,6 +80,15 @@ def update_patient_risk(db: Session, patient_id: str, mortality: float, risk: st
         patient.currentMortalityRisk = mortality
         patient.currentRiskLevel = risk
         patient.currentSofaScore = sofa
+        db.commit()
+        db.refresh(patient)
+    return patient
+
+
+def update_patient_tbsa(db: Session, patient_id: str, total_tbsa: float):
+    patient = get_patient(db, patient_id)
+    if patient:
+        patient.tbsa = round(float(total_tbsa), 2)
         db.commit()
         db.refresh(patient)
     return patient
